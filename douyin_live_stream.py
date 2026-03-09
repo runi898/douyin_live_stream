@@ -107,10 +107,15 @@ class DouyinLiveExtractor:
             try:
                 url = short_link_match.group(1)
                 html, resp = self._request(url, timeout=10)
-                # 尝试从重定向后的页面 HTML 寻找真实的 roomId
+                # 尝试从重定向后的页面 HTML 寻找真实的 roomId (通常直接在 live.douyin.com 中)
                 m = re.search(r'"roomId"\s*:\s*"(\d+)"', html)
                 if m:
                     return m.group(1)
+                
+                # 新增逻辑：有些特殊直播间短链跳转到的是 webcast.amemv.com 的落地页，真实的房间号在其 JSON 数据里的 webRid
+                m_webrid = re.search(r'\\*"webRid\\*"\s*:\s*\\*"(\d+)\\*"', html)
+                if m_webrid:
+                    return m_webrid.group(1)
                 
                 # 特殊情况：二段跳转（比如页面里带有 href 或者 location.replace 指向 live.douyin.com/id）
                 redirect_patterns = [
