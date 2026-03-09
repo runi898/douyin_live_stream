@@ -98,28 +98,39 @@ class DouyinLiveExtractor:
         return any(c.name == name for c in self.cookie_jar)
 
     def _parse_room_id(self, user_input: str) -> str:
-        """从用户输入中解析房间号"""
+        """从用户输入中提取真正的房间号"""
         user_input = user_input.strip()
-        if user_input.isdigit():
-            return user_input
-
-        # 短链接跳转
-        if 'v.douyin.com' in user_input:
+        
+        # 1. 如果包含短链接，则尝试访问并从内容中提取 roomId
+        short_link_match = re.search(r'(https?://v\.douyin\.com/[a-zA-Z0-9]+)', user_input)
+        if short_link_match:
             try:
-                _, resp = self._request(user_input, timeout=10)
+                url = short_link_match.group(1)
+                html, resp = self._request(url, timeout=10)
+                # 尝试从重定向后的页面 HTML 寻找真实的 roomId
+                m = re.search(r'"roomId"\s*:\s*"(\d+)"', html)
+                if m:
+                    return m.group(1)
+                # 兼容旧逻辑
+                m = re.search(r'room_id=(\d+)', resp.url)
+                if m:
+                    return m.group(1)
                 user_input = resp.url
             except:
                 pass
 
+        # 2. 如果包含标准完整链接
         for pattern in [r'live\.douyin\.com/(\d+)', r'/live/(\d+)', r'room_id=(\d+)']:
             match = re.search(pattern, user_input)
             if match:
                 return match.group(1)
 
+        # 3. 如果是纯数字房间号
         parsed = urlparse(user_input if '://' in user_input else 'https://' + user_input)
         parts = parsed.path.strip('/').split('/')
         if parts and parts[-1].isdigit():
             return parts[-1]
+            
         return user_input
 
     # ============================================================
