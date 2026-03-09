@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抖音直播源获取工具</title>
+    <meta name="description" content="在线提取抖音直播流地址，支持 FLV 和 HLS 多画质，点击即复制">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: rgba(17, 24, 39, 0.7);
+            --bg-card-hover: rgba(30, 41, 59, 0.8);
+            --border-color: rgba(99, 102, 241, 0.2);
+            --border-hover: rgba(99, 102, 241, 0.5);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --success: #22c55e;
+            --success-glow: rgba(34, 197, 94, 0.3);
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --flv-color: #f97316;
+            --flv-glow: rgba(249, 115, 22, 0.2);
+            --hls-color: #06b6d4;
+            --hls-glow: rgba(6, 182, 212, 0.2);
+            --quality-or4: #f43f5e;
+            --quality-uhd: #a855f7;
+            --quality-hd: #3b82f6;
+            --quality-sd: #22c55e;
+            --quality-ld: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 动态背景 */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 50%, rgba(168, 85, 247, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 20% 80%, rgba(6, 182, 212, 0.08), transparent);
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 头部 */
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .header-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-light), #c084fc, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 300;
+        }
+
+        /* 搜索区域 */
+        .search-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .search-card:focus-within {
+            border-color: var(--border-hover);
+            box-shadow: 0 0 40px var(--accent-glow);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            height: 52px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 14px;
+            padding: 0 16px 0 48px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            opacity: 0.5;
+        }
+
+        .btn-extract {
+            height: 52px;
+            padding: 0 28px;
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-extract:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-extract:active {
+            transform: translateY(0);
+        }
+
+        .btn-extract:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 加载动画 */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        .btn-extract.loading .spinner { display: block; }
+        .btn-extract.loading .btn-text { display: none; }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 提示消息 */
+        .message {
+            text-align: center;
+            padding: 20px;
+            border-radius: 14px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            animation: fadeIn 0.3s ease;
+            display: none;
+        }
+
+        .message.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .message.info {
+            display: block;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--accent-light);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 结果区域 */
+        .results-section {
+            display: none;
+            animation: slideUp 0.5s ease;
+        }
+
+        .results-section.show { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .protocol-section {
+            margin-bottom: 32px;
+        }
+
+        .protocol-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .protocol-badge {
+            padding: 5px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .protocol-badge.flv {
+            background: var(--flv-glow);
+            color: var(--flv-color);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+
+        .protocol-badge.hls {
+            background: var(--hls-glow);
+            color: var(--hls-color);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .protocol-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* 画质卡片 */
+        .stream-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stream-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stream-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            border-radius: 3px 0 0 3px;
+            transition: width 0.3s ease;
+        }
+
+        .stream-card[data-quality*="原画"]::before { background: var(--quality-or4); }
+        .stream-card[data-quality*="超清"]::before { background: var(--quality-uhd); }
+        .stream-card[data-quality*="高清"]::before { background: var(--quality-hd); }
+        .stream-card[data-quality*="标清"]::before { background: var(--quality-sd); }
+        .stream-card[data-quality*="流畅"]::before { background: var(--quality-ld); }
+        .stream-card[data-quality*="默认"]::before { background: var(--text-muted); }
+
+        .stream-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+            transform: translateX(4px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .stream-card:hover::before {
+            width: 5px;
+        }
+
+        .stream-card:active {
+            transform: translateX(2px) scale(0.995);
+        }
+
+        .quality-tag {
+            flex-shrink: 0;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .stream-card[data-quality*="原画"] .quality-tag {
+            background: rgba(244, 63, 94, 0.15);
+            color: var(--quality-or4);
+            border: 1px solid rgba(244, 63, 94, 0.25);
+        }
+        .stream-card[data-quality*="超清"] .quality-tag {
+            background: rgba(168, 85, 247, 0.15);
+            color: var(--quality-uhd);
+            border: 1px solid rgba(168, 85, 247, 0.25);
+        }
+        .stream-card[data-quality*="高清"] .quality-tag {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--quality-hd);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+        }
+        .stream-card[data-quality*="标清"] .quality-tag {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--quality-sd);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+        .stream-card[data-quality*="流畅"] .quality-tag {
+            background: rgba(100, 116, 139, 0.15);
+            color: var(--quality-ld);
+            border: 1px solid rgba(100, 116, 139, 0.25);
+        }
+        .stream-card[data-quality*="默认"] .quality-tag {
+            background: rgba(100, 116, 139, 0.15);
+            color: var(--text-muted);
+            border: 1px solid rgba(100, 116, 139, 0.25);
+        }
+
+        .stream-url {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+        }
+
+        .copy-hint {
+            flex-shrink: 0;
+            font-size: 12px;
+            color: var(--text-muted);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stream-card:hover .copy-hint {
+            opacity: 1;
+        }
+
+        /* 复制成功反馈 */
+        .stream-card.copied {
+            border-color: var(--success) !important;
+            box-shadow: 0 0 20px var(--success-glow) !important;
+        }
+
+        .stream-card.copied .copy-hint {
+            opacity: 1;
+            color: var(--success);
+        }
+
+        /* Toast 通知 */
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--success);
+            box-shadow: 0 8px 32px rgba(34, 197, 94, 0.2);
+            padding: 14px 28px;
+            border-radius: 14px;
+            color: var(--success);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px 0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .footer a {
+            color: var(--accent-light);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* 响应式 */
+        @media (max-width: 640px) {
+            .container { padding: 24px 16px; }
+            .header h1 { font-size: 24px; }
+            .header-icon { font-size: 44px; }
+            .search-card { padding: 20px; }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .btn-extract {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .stream-card {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .stream-url {
+                order: 3;
+                width: 100%;
+                white-space: normal;
+                word-break: break-all;
+                font-size: 12px;
+                line-height: 1.5;
+            }
+
+            .copy-hint { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-icon">🎬</div>
+            <h1>抖音直播源获取工具</h1>
+            <p>粘贴直播间链接，一键提取多画质流地址，点击即复制</p>
+        </header>
+
+        <div class="search-card">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">🔗</span>
+                    <input type="text" id="urlInput"
+                           placeholder="粘贴直播间链接或输入房间号..."
+                           autocomplete="off"
+                           spellcheck="false">
+                </div>
+                <button class="btn-extract" id="extractBtn" onclick="extract()">
+                    <div class="spinner"></div>
+                    <span class="btn-text">🚀 提取</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="message" id="messageBox"></div>
+
+        <div class="results-section" id="resultsSection">
+            <!-- FLV -->
+            <div class="protocol-section" id="flvSection" style="display:none">
+                <div class="protocol-header">
+                    <span class="protocol-badge flv">FLV</span>
+                    <span class="protocol-label">直播流地址</span>
+                </div>
+                <div class="stream-cards" id="flvCards"></div>
+            </div>
+            <!-- HLS -->
+            <div class="protocol-section" id="hlsSection" style="display:none">
+                <div class="protocol-header">
+                    <span class="protocol-badge hls">HLS / M3U8</span>
+                    <span class="protocol-label">直播流地址</span>
+                </div>
+                <div class="stream-cards" id="hlsCards"></div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>仅供学习研究使用 · <a href="https://github.com/runi898/douyin_live_stream" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span>✓</span>
+        <span id="toastText">已复制到剪贴板</span>
+    </div>
+
+    <script>
+        const urlInput = document.getElementById('urlInput');
+        const extractBtn = document.getElementById('extractBtn');
+        const messageBox = document.getElementById('messageBox');
+        const resultsSection = document.getElementById('resultsSection');
+        const flvSection = document.getElementById('flvSection');
+        const hlsSection = document.getElementById('hlsSection');
+        const flvCards = document.getElementById('flvCards');
+        const hlsCards = document.getElementById('hlsCards');
+        const toast = document.getElementById('toast');
+        const toastText = document.getElementById('toastText');
+
+        let toastTimer = null;
+
+        // 回车触发提取
+        urlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') extract();
+        });
+
+        // 自动粘贴（聚焦时如果输入框为空）
+        urlInput.addEventListener('focus', async () => {
+            if (urlInput.value.trim() === '' && navigator.clipboard && navigator.clipboard.readText) {
+                try {
+                    const clip = await navigator.clipboard.readText();
+                    if (clip && (clip.includes('douyin.com') || clip.includes('live.') || /^\d{5,}$/.test(clip.trim()))) {
+                        urlInput.value = clip.trim();
+                        urlInput.select();
+                    }
+                } catch {}
+            }
+        });
+
+        async function extract() {
+            const url = urlInput.value.trim();
+            if (!url) {
+                showMessage('请输入直播间链接或房间号', 'error');
+                urlInput.focus();
+                return;
+            }
+
+            // 清空旧结果
+            hideMessage();
+            resultsSection.classList.remove('show');
+            flvSection.style.display = 'none';
+            hlsSection.style.display = 'none';
+            flvCards.innerHTML = '';
+            hlsCards.innerHTML = '';
+
+            // 加载状态
+            extractBtn.classList.add('loading');
+            extractBtn.disabled = true;
+
+            try {
+                const resp = await fetch('/api/extract', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url }),
+                });
+                const data = await resp.json();
+
+                if (!data.success) {
+                    showMessage(data.message || '提取失败', 'error');
+                    return;
+                }
+
+                // 渲染结果
+                if (data.flv && data.flv.length > 0) {
+                    renderCards(flvCards, data.flv);
+                    flvSection.style.display = 'block';
+                }
+
+                if (data.hls && data.hls.length > 0) {
+                    renderCards(hlsCards, data.hls);
+                    hlsSection.style.display = 'block';
+                }
+
+                resultsSection.classList.add('show');
+
+            } catch (err) {
+                showMessage('网络请求失败: ' + err.message, 'error');
+            } finally {
+                extractBtn.classList.remove('loading');
+                extractBtn.disabled = false;
+            }
+        }
+
+        function renderCards(container, streams) {
+            streams.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = 'stream-card';
+                card.setAttribute('data-quality', item.quality);
+                card.style.animationDelay = `${idx * 0.05}s`;
+                card.innerHTML = `
+                    <span class="quality-tag">${item.quality}</span>
+                    <span class="stream-url" title="${escapeHtml(item.url)}">${escapeHtml(item.url)}</span>
+                    <span class="copy-hint">
+                        <span class="copy-icon">📋</span>
+                        点击复制
+                    </span>
+                `;
+                card.addEventListener('click', () => copyUrl(item.url, item.quality, card));
+                container.appendChild(card);
+            });
+        }
+
+        async function copyUrl(url, quality, cardEl) {
+            try {
+                await navigator.clipboard.writeText(url);
+            } catch {
+                // fallback
+                const ta = document.createElement('textarea');
+                ta.value = url;
+                ta.style.cssText = 'position:fixed;left:-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            }
+
+            // 视觉反馈
+            cardEl.classList.add('copied');
+            setTimeout(() => cardEl.classList.remove('copied'), 1500);
+
+            // Toast
+            showToast(`已复制 ${quality} 地址`);
+        }
+
+        function showMessage(text, type) {
+            messageBox.textContent = text;
+            messageBox.className = 'message ' + type;
+        }
+
+        function hideMessage() {
+            messageBox.className = 'message';
+            messageBox.style.display = 'none';
+            // reset
+            setTimeout(() => { messageBox.style.display = ''; }, 10);
+        }
+
+        function showToast(text) {
+            if (toastTimer) clearTimeout(toastTimer);
+            toastText.textContent = text;
+            toast.classList.add('show');
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+services:
+  douyin-live:
+    build: .
+    container_name: douyin-live-web
+    ports:
+      - "5000:5000"
+    restart: unless-stopped

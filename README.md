@@ -1,22 +1,26 @@
-# 🎬 抖音直播源获取工具（Python 版）
+# 🎬 抖音直播源获取工具
 
-零依赖的抖音直播流地址提取工具，使用 Python 内置标准库实现，无需安装任何第三方包。
+零依赖的抖音直播流地址提取工具，提供 **命令行 (CLI)** 和 **Web 界面** 两种使用方式。
 
 ## ✨ 功能特点
 
-- **零依赖**：仅使用 Python 标准库（`urllib`、`ssl`、`json`、`re`、`gzip`），无需 `pip install`
 - **多画质支持**：自动提取原画 (OR4)、超清 (UHD)、高清 (HD)、标清 (SD)、流畅 (LD) 等多种画质
 - **双协议输出**：同时提取 FLV 和 HLS (m3u8) 两种流媒体协议地址
 - **画质排序**：输出结果按清晰度从高到低排列，方便快速选择最佳画质
 - **多种输入方式**：支持直播间链接、短链接、房间号等多种输入格式
-- **自动剪贴板**：提取成功后自动复制到系统剪贴板（Windows）
+- **Web 版支持 Docker 部署**：提供精美的 Web 界面，点击画质卡片即可一键复制流地址
+- **CLI 版零依赖**：命令行版仅使用 Python 标准库，无需 `pip install`
 
-## 📋 环境要求
+---
+
+## �️ 方式一：命令行版（零依赖）
+
+### 环境要求
 
 - **Python 3.6+**（推荐 3.8 及以上）
 - 无需安装任何第三方依赖
 
-## 🚀 使用方法
+### 使用方法
 
 ```bash
 python douyin_live_stream.py
@@ -27,14 +31,6 @@ python douyin_live_stream.py
 ```
   请输入直播间链接或房间号 (q 退出): https://live.douyin.com/123456789
 ```
-
-### 支持的输入格式
-
-| 格式 | 示例 |
-|------|------|
-| 房间号 | `123456789` |
-| 直播间链接 | `https://live.douyin.com/123456789` |
-| 短链接 | `https://v.douyin.com/xxxxx/` |
 
 ### 输出示例
 
@@ -54,6 +50,58 @@ python douyin_live_stream.py
 
   ▶ 流畅 (LD)
     https://pull-xxx.douyincdn.com/...ld.flv?...
+```
+
+---
+
+## 🌐 方式二：Web 版（Docker 部署）
+
+提供精美的暗色主题 Web 界面，粘贴直播间链接后自动解析，**点击任意画质卡片即可一键复制对应的流地址**。
+
+### 快速部署
+
+```bash
+# 克隆项目
+git clone https://github.com/runi898/douyin_live_stream.git
+cd douyin_live_stream
+
+# Docker Compose 一键启动
+docker compose up -d
+```
+
+启动后访问 **http://localhost:5000** 即可使用。
+
+### 手动构建
+
+```bash
+# 构建镜像
+docker build -t douyin-live-web .
+
+# 运行容器
+docker run -d -p 5000:5000 --name douyin-live-web douyin-live-web
+```
+
+### 支持的输入格式
+
+| 格式 | 示例 |
+|------|------|
+| 房间号 | `123456789` |
+| 直播间链接 | `https://live.douyin.com/123456789` |
+| 短链接 | `https://v.douyin.com/xxxxx/` |
+
+---
+
+## 📁 项目结构
+
+```
+├── douyin_live_stream.py   # CLI 命令行版（零依赖）
+├── app.py                  # Web 版 Flask 服务
+├── static/
+│   └── index.html          # Web 界面
+├── Dockerfile              # Docker 镜像配置
+├── docker-compose.yml      # Docker Compose 配置
+├── requirements.txt        # Web 版 Python 依赖
+└── README.md
 ```
 
 ## 🔧 提取策略
