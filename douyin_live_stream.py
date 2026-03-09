@@ -362,10 +362,17 @@ class DouyinLiveExtractor:
                 if q not in results.get("hls", {}):
                     results.setdefault("hls", {})[q] = u
 
-        # 策略3: Webcast API
-        if not results.get("flv"):
-            print("[INFO] 尝试 Webcast API...")
-            results = self._try_webcast_api(room_id)
+        # 策略3: Webcast API（FLV 或 HLS 任一为空时触发兜底补充）
+        if not results.get("flv") or not results.get("hls"):
+            print("[INFO] 尝试 Webcast API 补充...")
+            api_results = self._try_webcast_api(room_id)
+            # 合并补充（不覆盖已有结果）
+            for q, u in api_results.get("flv", {}).items():
+                if q not in results.get("flv", {}):
+                    results.setdefault("flv", {})[q] = u
+            for q, u in api_results.get("hls", {}).items():
+                if q not in results.get("hls", {}):
+                    results.setdefault("hls", {})[q] = u
 
         # 最终报告
         flv_count = len(results.get("flv", {}))
