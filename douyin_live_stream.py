@@ -141,6 +141,8 @@ class DouyinLiveExtractor:
         text = text.replace('\\u0026', '&')
         text = text.replace('\\/', '/')
         text = text.replace('\\"', '"')
+        text = text.replace('&amp;', '&')
+        text = text.replace('&quot;', '"')
 
         # 搜索 FLV 流
         for suffix, quality_name in FLV_QUALITIES.items():
