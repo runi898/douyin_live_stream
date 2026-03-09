@@ -3,11 +3,15 @@
 基于 Flask，复用 douyin_live_stream.py 中的提取逻辑。
 """
 
+import logging
 from flask import Flask, send_from_directory, request, jsonify
 from douyin_live_stream import DouyinLiveExtractor
 
 app = Flask(__name__)
 extractor = DouyinLiveExtractor()
+
+# 配置日志等级
+app.logger.setLevel(logging.INFO)
 
 # 画质排序（从高到低）
 QUALITY_ORDER = ['原画 (OR4)', '超清 (UHD)', '高清 (HD)', '标清 (SD)', '流畅 (LD)']
@@ -37,6 +41,15 @@ def api_extract():
     """API: 提取直播流地址"""
     data = request.get_json(silent=True) or {}
     url = data.get("url", "").strip()
+    
+    # 获取真实IP，考虑常见的反向代理透传头
+    client_ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    # 若有多个 IP 取第一个
+    if client_ip and "," in client_ip:
+        client_ip = client_ip.split(",")[0].strip()
+
+    app.logger.info(f"收到提取请求 - IP: {client_ip} | URL: {url}")
+
     if not url:
         return jsonify({"success": False, "message": "请输入直播间链接或房间号"}), 400
 
