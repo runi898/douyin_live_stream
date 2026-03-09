@@ -111,6 +111,22 @@ class DouyinLiveExtractor:
                 m = re.search(r'"roomId"\s*:\s*"(\d+)"', html)
                 if m:
                     return m.group(1)
+                
+                # 特殊情况：二段跳转（比如页面里带有 href 或者 location.replace 指向 live.douyin.com/id）
+                redirect_patterns = [
+                    r'url=(https?://live\.douyin\.com/\d+)',
+                    r'window\.location\.replace\([\"\'](https?://live\.douyin\.com/\d+)',
+                    r'href=[\"\'](https?://live\.douyin\.com/\d+)'
+                ]
+                for rp in redirect_patterns:
+                    rm = re.search(rp, html)
+                    if rm:
+                        new_url = rm.group(1)
+                        # 从新跳转链接提取单纯的数字 room_id
+                        id_match = re.search(r'live\.douyin\.com/(\d+)', new_url)
+                        if id_match:
+                            return id_match.group(1)
+
                 # 兼容旧逻辑
                 m = re.search(r'room_id=(\d+)', resp.url)
                 if m:
