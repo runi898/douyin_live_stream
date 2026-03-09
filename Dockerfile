@@ -13,5 +13,5 @@ COPY static/ static/
 
 EXPOSE 5000
 
-# 使用 gunicorn 生产级部署
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "-w", "2", "--timeout", "60", "app:app"]
+# 使用 gunicorn 生产级部署，增加超时时间防止等待页面时 worker timeout
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "-w", "2", "--timeout", "120", "app:app"]
