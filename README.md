@@ -1,6 +1,6 @@
 # 🎬 抖音直播源获取工具
 
-零依赖的抖音直播流地址提取工具，提供 **命令行 (CLI)** 和 **Web 界面** 两种使用方式。
+抖音直播流地址提取工具，提供 **命令行 (CLI)**、**本地 Web** 和 **Docker Web** 三种使用方式。
 
 ## ✨ 功能特点
 
@@ -8,12 +8,12 @@
 - **双协议输出**：同时提取 FLV 和 HLS (m3u8) 两种流媒体协议地址
 - **画质排序**：输出结果按清晰度从高到低排列，方便快速选择最佳画质
 - **多种输入方式**：支持直播间链接、短链接、房间号等多种输入格式
-- **Web 版支持 Docker 部署**：提供精美的 Web 界面，点击画质卡片即可一键复制流地址
+- **Web 版支持本地运行与 Docker 部署**：提供精美的 Web 界面，点击画质卡片即可一键复制流地址
 - **CLI 版零依赖**：命令行版仅使用 Python 标准库，无需 `pip install`
 
 ---
 
-## �️ 方式一：命令行版（零依赖）
+## 方式一：命令行版（零依赖）
 
 ### 环境要求
 
@@ -54,15 +54,41 @@ python douyin_live_stream.py
 
 ---
 
-## 🌐 方式二：Web 版（Docker 部署）
+## 🌐 方式二：Web 版（本地运行）
 
 提供精美的暗色主题 Web 界面，粘贴直播间链接后自动解析，**点击任意画质卡片即可一键复制对应的流地址**。
+
+### 环境要求
+
+- **Python 3.8+**（推荐 3.10 及以上）
+- 需安装 Web 依赖：
+
+```bash
+pip install -r requirements.txt
+python -m playwright install chromium
+```
+
+### 启动方法
+
+```bash
+python app.py
+```
+
+启动后访问：
+
+```text
+http://127.0.0.1:5000
+```
 
 ### 页面预览
 
 ![Web 首页预览](docs/screenshots/web-home.png)
 
 ![Web 提取结果预览](docs/screenshots/web-result.png)
+
+---
+
+## 🐳 方式三：Docker 版
 
 ### 快速部署
 
@@ -72,10 +98,19 @@ git clone https://github.com/runi898/douyin_live_stream.git
 cd douyin_live_stream
 
 # Docker Compose 一键启动
-docker compose up -d
+docker compose up -d --build
 ```
 
 启动后访问 **http://localhost:5000** 即可使用。
+
+Docker Compose 默认使用清华 PyPI 镜像和清华 Debian 源；如果你要手动指定，也可以在启动前设置：
+
+```bash
+export PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+export DEBIAN_MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
+export DEBIAN_SECURITY_MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian-security
+docker compose up -d --build
+```
 
 ### 手动构建
 
