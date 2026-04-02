@@ -58,6 +58,12 @@ python douyin_live_stream.py
 
 提供精美的暗色主题 Web 界面，粘贴直播间链接后自动解析，**点击任意画质卡片即可一键复制对应的流地址**。
 
+### 页面预览
+
+![Web 首页预览](docs/screenshots/web-home.png)
+
+![Web 提取结果预览](docs/screenshots/web-result.png)
+
 ### 快速部署
 
 ```bash
