@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>抖音直播源获取工具</title>
-    <meta name="description" content="在线提取抖音直播流地址，支持 FLV 和 HLS 多画质，点击即复制">
+    <meta name="description" content="支持抖音号、主页链接、分享链接、直播链接或房间号，提取抖音直播 FLV 和 HLS 推流码。">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -30,7 +30,6 @@
             --accent-glow: rgba(99, 102, 241, 0.3);
             --success: #22c55e;
             --success-glow: rgba(34, 197, 94, 0.3);
-            --warning: #f59e0b;
             --error: #ef4444;
             --flv-color: #f97316;
             --flv-glow: rgba(249, 115, 22, 0.2);
@@ -44,20 +43,16 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
         }
 
-        /* 动态背景 */
         .bg-gradient {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             z-index: 0;
             pointer-events: none;
             background:
@@ -69,12 +64,11 @@
         .container {
             position: relative;
             z-index: 1;
-            max-width: 900px;
+            max-width: 920px;
             margin: 0 auto;
             padding: 40px 20px;
         }
 
-        /* 头部 */
         .header {
             text-align: center;
             margin-bottom: 48px;
@@ -99,7 +93,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             letter-spacing: -0.5px;
         }
 
@@ -107,13 +101,12 @@
             color: var(--text-secondary);
             font-size: 15px;
             font-weight: 300;
+            line-height: 1.7;
         }
 
-        /* 搜索区域 */
         .search-card {
             background: var(--bg-card);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
             border-radius: 20px;
             padding: 32px;
@@ -144,7 +137,7 @@
             border: 1px solid rgba(99, 102, 241, 0.15);
             border-radius: 14px;
             padding: 0 16px 0 48px;
-            font-family: 'Inter', sans-serif;
+            font-family: "Inter", sans-serif;
             font-size: 15px;
             color: var(--text-primary);
             outline: none;
@@ -164,9 +157,23 @@
             position: absolute;
             left: 16px;
             top: 50%;
-            transform: translateY(-50%);
-            font-size: 18px;
-            opacity: 0.5;
+            transform: translateY(-50%) rotate(-45deg);
+            width: 22px;
+            height: 22px;
+            color: #8b93b1;
+            opacity: 0.72;
+            pointer-events: none;
+        }
+
+        .input-icon svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         .btn-extract {
@@ -176,7 +183,7 @@
             border: none;
             border-radius: 14px;
             color: white;
-            font-family: 'Inter', sans-serif;
+            font-family: "Inter", sans-serif;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
@@ -192,10 +199,6 @@
             box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
         }
 
-        .btn-extract:active {
-            transform: translateY(0);
-        }
-
         .btn-extract:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -203,11 +206,10 @@
             box-shadow: none;
         }
 
-        /* 加载动画 */
         .spinner {
             width: 18px;
             height: 18px;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-top-color: white;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
@@ -221,7 +223,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* 提示消息 */
         .message {
             text-align: center;
             padding: 20px;
@@ -251,7 +252,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 结果区域 */
         .results-section {
             display: none;
             animation: slideUp 0.5s ease;
@@ -274,7 +274,7 @@
             gap: 10px;
             margin-bottom: 16px;
             padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .protocol-badge {
@@ -302,7 +302,6 @@
             font-size: 14px;
         }
 
-        /* 画质卡片 */
         .stream-cards {
             display: flex;
             flex-direction: column;
@@ -325,7 +324,7 @@
         }
 
         .stream-card::before {
-            content: '';
+            content: "";
             position: absolute;
             top: 0;
             left: 0;
@@ -340,7 +339,6 @@
         .stream-card[data-quality*="高清"]::before { background: var(--quality-hd); }
         .stream-card[data-quality*="标清"]::before { background: var(--quality-sd); }
         .stream-card[data-quality*="流畅"]::before { background: var(--quality-ld); }
-        .stream-card[data-quality*="默认"]::before { background: var(--text-muted); }
 
         .stream-card:hover {
             background: var(--bg-card-hover);
@@ -351,10 +349,6 @@
 
         .stream-card:hover::before {
             width: 5px;
-        }
-
-        .stream-card:active {
-            transform: translateX(2px) scale(0.995);
         }
 
         .quality-tag {
@@ -372,29 +366,28 @@
             color: var(--quality-or4);
             border: 1px solid rgba(244, 63, 94, 0.25);
         }
+
         .stream-card[data-quality*="超清"] .quality-tag {
             background: rgba(168, 85, 247, 0.15);
             color: var(--quality-uhd);
             border: 1px solid rgba(168, 85, 247, 0.25);
         }
+
         .stream-card[data-quality*="高清"] .quality-tag {
             background: rgba(59, 130, 246, 0.15);
             color: var(--quality-hd);
             border: 1px solid rgba(59, 130, 246, 0.25);
         }
+
         .stream-card[data-quality*="标清"] .quality-tag {
             background: rgba(34, 197, 94, 0.15);
             color: var(--quality-sd);
             border: 1px solid rgba(34, 197, 94, 0.25);
         }
+
         .stream-card[data-quality*="流畅"] .quality-tag {
             background: rgba(100, 116, 139, 0.15);
             color: var(--quality-ld);
-            border: 1px solid rgba(100, 116, 139, 0.25);
-        }
-        .stream-card[data-quality*="默认"] .quality-tag {
-            background: rgba(100, 116, 139, 0.15);
-            color: var(--text-muted);
             border: 1px solid rgba(100, 116, 139, 0.25);
         }
 
@@ -405,7 +398,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+            font-family: "SF Mono", "Cascadia Code", "Fira Code", monospace;
         }
 
         .copy-hint {
@@ -423,7 +416,6 @@
             opacity: 1;
         }
 
-        /* 复制成功反馈 */
         .stream-card.copied {
             border-color: var(--success) !important;
             box-shadow: 0 0 20px var(--success-glow) !important;
@@ -434,7 +426,6 @@
             color: var(--success);
         }
 
-        /* Toast 通知 */
         .toast {
             position: fixed;
             bottom: 40px;
@@ -463,7 +454,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* 页脚 */
         .footer {
             text-align: center;
             margin-top: 60px;
@@ -481,27 +471,14 @@
             text-decoration: underline;
         }
 
-        /* 响应式 */
         @media (max-width: 640px) {
             .container { padding: 24px 16px; }
             .header h1 { font-size: 24px; }
             .header-icon { font-size: 44px; }
             .search-card { padding: 20px; }
-
-            .input-group {
-                flex-direction: column;
-            }
-
-            .btn-extract {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .stream-card {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-
+            .input-group { flex-direction: column; }
+            .btn-extract { width: 100%; justify-content: center; }
+            .stream-card { flex-wrap: wrap; gap: 8px; }
             .stream-url {
                 order: 3;
                 width: 100%;
@@ -510,7 +487,6 @@
                 font-size: 12px;
                 line-height: 1.5;
             }
-
             .copy-hint { opacity: 0.7; }
         }
     </style>
@@ -520,23 +496,26 @@
 
     <div class="container">
         <header class="header">
-            <div class="header-icon">🎬</div>
+            <div class="header-icon">直播</div>
             <h1>抖音直播源获取工具</h1>
-            <p>粘贴直播间链接，一键提取多画质流地址，点击即复制</p>
+            <p>支持抖音号、主页链接、分享链接、直播链接或房间号，点击即复制</p>
         </header>
 
         <div class="search-card">
             <div class="input-group">
                 <div class="input-wrapper">
-                    <span class="input-icon">🔗</span>
-                    <input type="text" id="urlInput"
-                           placeholder="粘贴直播间链接或输入房间号..."
-                           autocomplete="off"
-                           spellcheck="false">
+                    <span class="input-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="img" focusable="false">
+                            <path d="M15 7h2a5 5 0 1 1 0 10h-2"></path>
+                            <path d="M9 17H7A5 5 0 0 1 7 7h2"></path>
+                            <path d="M8 12h8"></path>
+                        </svg>
+                    </span>
+                    <input type="text" id="urlInput" placeholder="输入抖音号、主页链接、分享链接、直播链接或房间号" autocomplete="off" spellcheck="false">
                 </div>
                 <button class="btn-extract" id="extractBtn" onclick="extract()">
                     <div class="spinner"></div>
-                    <span class="btn-text">🚀 提取</span>
+                    <span class="btn-text">提取</span>
                 </button>
             </div>
         </div>
@@ -544,136 +523,112 @@
         <div class="message" id="messageBox"></div>
 
         <div class="results-section" id="resultsSection">
-            <!-- FLV -->
             <div class="protocol-section" id="flvSection" style="display:none">
                 <div class="protocol-header">
                     <span class="protocol-badge flv">FLV</span>
-                    <span class="protocol-label">直播流地址</span>
+                    <span class="protocol-label">推流码</span>
                 </div>
                 <div class="stream-cards" id="flvCards"></div>
             </div>
-            <!-- HLS -->
             <div class="protocol-section" id="hlsSection" style="display:none">
                 <div class="protocol-header">
                     <span class="protocol-badge hls">HLS / M3U8</span>
-                    <span class="protocol-label">直播流地址</span>
+                    <span class="protocol-label">推流码</span>
                 </div>
                 <div class="stream-cards" id="hlsCards"></div>
             </div>
         </div>
 
         <footer class="footer">
-            <p>仅供学习研究使用 · <a href="https://github.com/runi898/douyin_live_stream" target="_blank">GitHub</a></p>
+            <p>仅供学习研究使用 · <a href="https://github.com/runi898/douyin_live_stream" target="_blank" rel="noopener noreferrer">GitHub</a></p>
         </footer>
     </div>
 
-    <!-- Toast -->
     <div class="toast" id="toast">
-        <span>✓</span>
-        <span id="toastText">已复制到剪贴板</span>
+        <span>已复制</span>
+        <span id="toastText">推流码已复制到剪贴板</span>
     </div>
 
     <script>
-        const urlInput = document.getElementById('urlInput');
-        const extractBtn = document.getElementById('extractBtn');
-        const messageBox = document.getElementById('messageBox');
-        const resultsSection = document.getElementById('resultsSection');
-        const flvSection = document.getElementById('flvSection');
-        const hlsSection = document.getElementById('hlsSection');
-        const flvCards = document.getElementById('flvCards');
-        const hlsCards = document.getElementById('hlsCards');
-        const toast = document.getElementById('toast');
-        const toastText = document.getElementById('toastText');
+        const urlInput = document.getElementById("urlInput");
+        const extractBtn = document.getElementById("extractBtn");
+        const messageBox = document.getElementById("messageBox");
+        const resultsSection = document.getElementById("resultsSection");
+        const flvSection = document.getElementById("flvSection");
+        const hlsSection = document.getElementById("hlsSection");
+        const flvCards = document.getElementById("flvCards");
+        const hlsCards = document.getElementById("hlsCards");
+        const toast = document.getElementById("toast");
+        const toastText = document.getElementById("toastText");
 
         let toastTimer = null;
 
-        // 回车触发提取
-        urlInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') extract();
-        });
-
-        // 自动粘贴（聚焦时如果输入框为空）
-        urlInput.addEventListener('focus', async () => {
-            if (urlInput.value.trim() === '' && navigator.clipboard && navigator.clipboard.readText) {
-                try {
-                    const clip = await navigator.clipboard.readText();
-                    if (clip && (clip.includes('douyin.com') || clip.includes('live.') || /^\d{5,}$/.test(clip.trim()))) {
-                        urlInput.value = clip.trim();
-                        urlInput.select();
-                    }
-                } catch {}
-            }
+        urlInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") extract();
         });
 
         async function extract() {
             const url = urlInput.value.trim();
             if (!url) {
-                showMessage('请输入直播间链接或房间号', 'error');
+                showMessage("请输入抖音号、主页链接、分享链接、直播链接或房间号", "error");
                 urlInput.focus();
                 return;
             }
 
-            // 清空旧结果
             hideMessage();
-            resultsSection.classList.remove('show');
-            flvSection.style.display = 'none';
-            hlsSection.style.display = 'none';
-            flvCards.innerHTML = '';
-            hlsCards.innerHTML = '';
+            resultsSection.classList.remove("show");
+            flvSection.style.display = "none";
+            hlsSection.style.display = "none";
+            flvCards.innerHTML = "";
+            hlsCards.innerHTML = "";
 
-            // 加载状态
-            extractBtn.classList.add('loading');
+            extractBtn.classList.add("loading");
             extractBtn.disabled = true;
 
             try {
-                const resp = await fetch('/api/extract', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const resp = await fetch("/api/extract", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ url }),
                 });
                 const data = await resp.json();
 
                 if (!data.success) {
-                    showMessage(data.message || '提取失败', 'error');
+                    showMessage(data.message || "提取失败", "error");
                     return;
                 }
 
-                // 渲染结果
                 if (data.flv && data.flv.length > 0) {
                     renderCards(flvCards, data.flv);
-                    flvSection.style.display = 'block';
+                    flvSection.style.display = "block";
                 }
 
                 if (data.hls && data.hls.length > 0) {
                     renderCards(hlsCards, data.hls);
-                    hlsSection.style.display = 'block';
+                    hlsSection.style.display = "block";
                 }
 
-                resultsSection.classList.add('show');
-
+                resultsSection.classList.add("show");
             } catch (err) {
-                showMessage('网络请求失败: ' + err.message, 'error');
+                showMessage("网络请求失败: " + err.message, "error");
             } finally {
-                extractBtn.classList.remove('loading');
+                extractBtn.classList.remove("loading");
                 extractBtn.disabled = false;
             }
         }
 
         function renderCards(container, streams) {
             streams.forEach((item, idx) => {
-                const card = document.createElement('div');
-                card.className = 'stream-card';
-                card.setAttribute('data-quality', item.quality);
+                const card = document.createElement("div");
+                card.className = "stream-card";
+                card.setAttribute("data-quality", item.quality);
                 card.style.animationDelay = `${idx * 0.05}s`;
                 card.innerHTML = `
-                    <span class="quality-tag">${item.quality}</span>
+                    <span class="quality-tag">${escapeHtml(item.quality)}</span>
                     <span class="stream-url" title="${escapeHtml(item.url)}">${escapeHtml(item.url)}</span>
-                    <span class="copy-hint">
-                        <span class="copy-icon">📋</span>
-                        点击复制
-                    </span>
+                    <span class="copy-hint">点击复制</span>
                 `;
-                card.addEventListener('click', () => copyUrl(item.url, item.quality, card));
+                card.addEventListener("click", () => copyUrl(item.url, item.quality, card));
                 container.appendChild(card);
             });
         }
@@ -682,47 +637,40 @@
             try {
                 await navigator.clipboard.writeText(url);
             } catch {
-                // fallback
-                const ta = document.createElement('textarea');
+                const ta = document.createElement("textarea");
                 ta.value = url;
-                ta.style.cssText = 'position:fixed;left:-9999px';
+                ta.style.cssText = "position:fixed;left:-9999px";
                 document.body.appendChild(ta);
                 ta.select();
-                document.execCommand('copy');
+                document.execCommand("copy");
                 document.body.removeChild(ta);
             }
 
-            // 视觉反馈
-            cardEl.classList.add('copied');
-            setTimeout(() => cardEl.classList.remove('copied'), 1500);
-
-            // Toast
-            showToast(`已复制 ${quality} 地址`);
+            cardEl.classList.add("copied");
+            setTimeout(() => cardEl.classList.remove("copied"), 1500);
+            showToast(`已复制 ${quality} 推流码`);
         }
 
         function showMessage(text, type) {
             messageBox.textContent = text;
-            messageBox.className = 'message ' + type;
+            messageBox.className = "message " + type;
         }
 
         function hideMessage() {
-            messageBox.className = 'message';
-            messageBox.style.display = 'none';
-            // reset
-            setTimeout(() => { messageBox.style.display = ''; }, 10);
+            messageBox.className = "message";
+            messageBox.style.display = "none";
+            setTimeout(() => { messageBox.style.display = ""; }, 10);
         }
 
         function showToast(text) {
             if (toastTimer) clearTimeout(toastTimer);
             toastText.textContent = text;
-            toast.classList.add('show');
-            toastTimer = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2000);
+            toast.classList.add("show");
+            toastTimer = setTimeout(() => toast.classList.remove("show"), 2000);
         }
 
         function escapeHtml(str) {
-            const div = document.createElement('div');
+            const div = document.createElement("div");
             div.textContent = str;
             return div.innerHTML;
         }
